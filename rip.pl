@@ -296,13 +296,14 @@ sub rptMsg {
 			my $clean_prefix = $config{reg} =~ s/.*\///gr;
 			$clean_prefix =~ s/\./\_/g;
 			mkdir($clean_prefix."_results/");
+			mkdir($clean_prefix."_results/results");
 			my $dirs = dirname($filename);
 			mkdir($clean_prefix."_results/".$dirs);
-			print "\nDir: ".$dirs."\n";
-			print "Made folder ".$clean_prefix."_results/\n";
+			#print "\nDir: ".$dirs."\n";
+			#print "Made folder ".$clean_prefix."_results/\n";
 			my $string = shift;
-			print $string."\n";
-			print $clean_prefix."_results/".$filename." - result file\n";
+			#print $string."\n";
+			#print $clean_prefix."_results/".$filename." - result file\n";
 			open(FH, '>>', $clean_prefix."_results/".$filename) or die $!;
 			print FH $string."\n";
 			close(FH);

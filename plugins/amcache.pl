@@ -51,13 +51,13 @@ sub pluginmain {
 # Newer version Amcache.hve files
 # Devices not parsed at this time
   my $key_path = 'Root\\InventoryApplicationFile';
-  #if ($key = $root_key->get_subkey($key_path)) {
-		#parseInventoryApplicationFile($key);
+  if ($key = $root_key->get_subkey($key_path)) {
+		parseInventoryApplicationFile($key);
 		
-	#}
-	#else {
-	#	::rptMsg("results/amcache_results.csv",$key_path." not found.");
-	#}
+	}
+	else {
+		::logMsg($key_path." not found.");
+	}
   
   my $key_path = 'Root\\InventoryApplication';
   if ($key = $root_key->get_subkey($key_path)) {
@@ -65,7 +65,7 @@ sub pluginmain {
 		
 	}
 	else {
-		print "results/amcache_results.csv",$key_path." not found.";
+		::logMsg($key_path." not found.");
 	}
 	
 # Older version AmCache.hve files
@@ -76,9 +76,8 @@ sub pluginmain {
 		
 	}
 	else {
-		::rptMsg("results/amcache_results.csv",$key_path." not found.");
+		::logMsg($key_path." not found.");
 	}
-	::rptMsg("results/amcache_results.csv","");
 	
 # Root\Programs subkey	
 	$key_path = 'Root\\Programs';
@@ -86,13 +85,12 @@ sub pluginmain {
 		parsePrograms($key);
 	}
 	else {
-		::rptMsg("results/amcache_results.csv",$key_path." not found.");
+		::logMsg($key_path." not found.");
 	}
 }
 
 sub parseInventoryApplicationFile {
 	my $key = shift;
-	::rptMsg("results/amcache/InventoryApplicationFile.csv");
 	my @sk = $key->get_list_of_subkeys();
 	if (scalar(@sk) > 0) {
 		::rptMsg("results/amcache/InventoryApplicationFile.csv","Path|Time|Hash");	
@@ -110,8 +108,6 @@ sub parseInventoryApplicationFile {
 				$hash =~ s/^0000//;
 			};
 			::rptMsg("results/amcache/InventoryApplicationFile.csv",$path."|".gmtime($lw)."|".$hash);	
-			#::rptMsg("results/amcache_results.csv","Hash: ".$hash);
-			#::rptMsg("results/amcache_results.csv","");
 		}
 	}
 	else {
@@ -150,64 +146,64 @@ sub parseFile {
 	my (@t,$gt);
 	my @sk1 = $key->get_list_of_subkeys();
 	foreach my $s1 (@sk1) {
+		my $tsvstr;
 # Volume GUIDs			
-		::rptMsg("results/amcache/files_amcache_results.csv",$s1->get_name());
 			
 		my @sk = $s1->get_list_of_subkeys();
 		if (scalar(@sk) > 0) {
 			foreach my $s (@sk) {
-				::rptMsg("results/amcache/files_amcache_results.csv","File Reference: ".$s->get_name());
-				::rptMsg("results/amcache/files_amcache_results.csv","LastWrite     : ".gmtime($s->get_timestamp())." Z");
+				$tsvstr .= $s->get_name();
+				$tsvstr .=  "|".gmtime($s->get_timestamp())." Z";
 # update 20131213: based on trial and error, it appears that not all file
 # references will have all of the values, such as Path, or SHA-1		
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","Path          : ".$s->get_value("15")->get_data());
+					$tsvstr .=  "|".$s->get_value("15")->get_data();
 				};
 					
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","Company Name  : ".$s->get_value("1")->get_data());
+					$tsvstr .=  "|".$s->get_value("1")->get_data();
 				};
 					
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","Product Name  : ".$s->get_value("0")->get_data());
+					$tsvstr .=  "|".$s->get_value("0")->get_data();
 				};
 					
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","File Descr    : ".$s->get_value("c")->get_data());
+					$tsvstr .=  "|".$s->get_value("c")->get_data();
 				};
 					
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","Lang Code     : ".$s->get_value("3")->get_data());
+					$tsvstr .=  "|".$s->get_value("3")->get_data();
 				};
 					
 				eval {
-					::rptMsg("results/amcache/files_amcache_results.csv","SHA-1         : ".$s->get_value("101")->get_data());
+					$tsvstr .=  "|".$s->get_value("101")->get_data();
 				};
 					
 				eval {
 					@t = unpack("VV",$s->get_value("11")->get_data());
 					$gt = gmtime(::getTime($t[0],$t[1]));
-					::rptMsg("results/amcache/files_amcache_results.csv","Last Mod Time : ".$gt." Z");
+					$tsvstr .=  "|".$gt." Z";
 				};
 					
 				eval {
 					@t = unpack("VV",$s->get_value("17")->get_data());
 					$gt = gmtime(::getTime($t[0],$t[1]));
-					::rptMsg("results/amcache/files_amcache_results.csv","Last Mod Time2: ".$gt." Z");
+					$tsvstr .=  "|".$gt." Z";
 				};
 					
 				eval {
 					@t = unpack("VV",$s->get_value("12")->get_data());
 					$gt = gmtime(::getTime($t[0],$t[1]));
-					::rptMsg("results/amcache/files_amcache_results.csv","Create Time   : ".$gt." Z");
+					$tsvstr .=  "|".$gt." Z";
 				};
 					
 				eval {
 					$gt = gmtime($s->get_value("f")->get_data());
 #						$gt = gmtime(unpack("V",$s->get_value("f")->get_data()));
-					::rptMsg("results/amcache/files_amcache_results.csv","Compile Time  : ".$gt." Z");
+					$tsvstr .=  "|".$gt." Z\n";
 				};
-				::rptMsg("results/amcache/files_amcache_results.csv","");
+				::rptMsg("results/amcache/files_amcache_results.csv",$tsvstr);
 			}
 		}
 		else {
